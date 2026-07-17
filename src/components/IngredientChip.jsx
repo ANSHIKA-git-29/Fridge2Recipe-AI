@@ -1,0 +1,4 @@
+import {FiX} from 'react-icons/fi';
+const icons=[[/egg|omelette/,'🥚'],[/tomato/,'🍅'],[/cheese|paneer/,'🧀'],[/onion|garlic/,'🧅'],[/spinach|lettuce|kale|salad|leaf/,'🥬'],[/mushroom/,'🍄'],[/chicken|turkey/,'🍗'],[/beef|steak|meat/,'🥩'],[/fish|salmon|tuna|prawn|shrimp/,'🐟'],[/rice/,'🍚'],[/pasta|noodle/,'🍝'],[/potato/,'🥔'],[/carrot/,'🥕'],[/pepper|chilli/,'🌶️'],[/apple/,'🍎'],[/banana/,'🍌'],[/milk|yogurt|cream/,'🥛'],[/bread/,'🍞'],[/bean|lentil|chickpea/,'🫘']];
+const iconFor=name=>icons.find(([pattern])=>pattern.test(name.toLowerCase()))?.[1]||'🧺';
+export default function IngredientChip({name,onRemove}){return <span className="inline-flex items-center gap-2 rounded-full bg-orange/10 py-2 pl-3 pr-2 font-medium text-orange"><span aria-hidden="true">{iconFor(name)}</span> {name}<button onClick={onRemove} aria-label={`Remove ${name}`} className="rounded-full p-1 hover:bg-orange/15"><FiX/></button></span>}

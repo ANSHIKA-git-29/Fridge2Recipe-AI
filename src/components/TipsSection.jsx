@@ -1,0 +1,1 @@
+export default function TipsSection({tips}){return <section><h2 className="mb-4 font-serif text-2xl">Chef’s notes</h2><div className="space-y-3">{tips.map((x,i)=><div className="rounded-2xl border border-sun/30 bg-sun/10 p-4" key={i}>✦ {x}</div>)}</div></section>}

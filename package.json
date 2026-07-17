@@ -1,0 +1,9 @@
+{
+  "name": "fridge2recipe-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "concurrently \"vite\" \"node backend/server.js\"", "server": "node backend/server.js", "build": "vite build", "start": "npm run build && node backend/server.js --production", "test": "node --test", "lint": "node scripts/lint.mjs", "preview": "vite preview" },
+  "dependencies": { "@vitejs/plugin-react": "latest", "concurrently": "latest", "cors": "latest", "dotenv": "latest", "express": "latest", "framer-motion": "latest", "react": "^19.0.0", "react-dom": "^19.0.0", "react-hot-toast": "latest", "react-icons": "latest", "vite": "latest" },
+  "devDependencies": { "autoprefixer": "latest", "postcss": "latest", "tailwindcss": "^3.4.17" }
+}

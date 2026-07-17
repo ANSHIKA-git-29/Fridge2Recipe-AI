@@ -1,0 +1,55 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { FiArrowLeft, FiArrowRight, FiHeart, FiShuffle, FiZap } from 'react-icons/fi';
+import IngredientInput from '../components/IngredientInput';
+import IngredientList from '../components/IngredientList';
+import EmptyState from '../components/EmptyState';
+import Loader from '../components/Loader';
+import ErrorCard from '../components/ErrorCard';
+import RecipeHero from '../components/RecipeHero';
+import ServingScaler from '../components/ServingScaler';
+import IngredientsChecklist from '../components/IngredientsChecklist';
+import StepsTimeline from '../components/StepsTimeline';
+import NutritionCard from '../components/NutritionCard';
+import IngredientSwaps from '../components/IngredientSwaps';
+import TipsSection from '../components/TipsSection';
+import { scaleIngredients } from '../utils/scaleIngredients';
+import { assessIngredients } from '../utils/ingredientAssessment';
+import InsufficientIngredients from '../components/InsufficientIngredients';
+
+const popular = ['Eggs', 'Tomato', 'Cheese', 'Onion', 'Spinach', 'Chicken'];
+const nonFood = /\b(phone|mobile|iphone|laptop|computer|keyboard|mouse|monitor|charger|battery|car|bike|chair|table|sofa|shoe|shirt|book|paper|pen|pencil|plastic|glass|metal|wood|soap|shampoo|toothpaste|detergent|bleach|medicine|tablet|camera|remote|toy|wallet|money|coin|key|cable|wire|bag|box|bottle|ear|nose|eye|eyes|finger|fingers|hand|hands|foot|feet|hair|tooth|teeth|mouth|face|arm|leg|skin)\b/i;
+const isFoodLike = (item) => {
+  const value = item.trim();
+  return value.length >= 2 && value.length <= 50 && /^[a-zA-Z][a-zA-Z\s'-]*$/.test(value) && !nonFood.test(value);
+};
+const read = (key, initial) => { try { const value = JSON.parse(localStorage.getItem(key)); return value ?? initial; } catch { return initial; } };
+const features = [['⚡', 'AI recipe generation', 'A dinner idea that uses what you have.'], ['🥗', 'Nutrition insights', 'A simple at-a-glance meal breakdown.'], ['🧺', 'Smart ingredient swaps', 'Flexible ideas when your fridge is missing one thing.'], ['💚', 'Save favorites', 'Keep the recipes you want to make again.'], ['📱', 'Made for every kitchen', 'A calm cooking companion on any screen.'], ['🛡️', 'Reliable AI handling', 'Safe recovery when an answer is not usable.']];
+
+export default function Home({ recipe, generate, status, insufficient, onClearInsufficient, onSave, favorite, onFavorite, onResetRecipe }) {
+  const [items, setItems] = useState(() => read('f2r-ingredients', []).filter(isFoodLike));
+  const [servings, setServings] = useState(recipe?.servings || 2);
+  const [ingredientDone, setIngredientDone] = useState([]);
+  const [stepDone, setStepDone] = useState([]);
+  const [localInsufficient, setLocalInsufficient] = useState(null);
+  const progressKey = recipe ? `f2r-progress:${recipe.id}` : null;
+
+  useEffect(() => { const shortcut = (event) => { if (event.key === '/' && document.activeElement?.tagName !== 'INPUT') { event.preventDefault(); document.getElementById('ingredient-input')?.focus(); } }; window.addEventListener('keydown', shortcut); return () => window.removeEventListener('keydown', shortcut); }, []);
+  useEffect(() => { localStorage.setItem('f2r-ingredients', JSON.stringify(items)); }, [items]);
+  useEffect(() => { if (!recipe) return; const saved = read(progressKey, null); setServings(saved?.servings || recipe.servings); setIngredientDone(Array.isArray(saved?.ingredientDone) ? saved.ingredientDone : []); setStepDone(Array.isArray(saved?.stepDone) ? saved.stepDone : []); }, [recipe, progressKey]);
+  useEffect(() => { if (progressKey) localStorage.setItem(progressKey, JSON.stringify({ servings, ingredientDone, stepDone })); }, [progressKey, servings, ingredientDone, stepDone]);
+
+  const add = (raw) => { const incoming = String(raw).split(',').map((item) => item.trim()).filter(Boolean); if (!incoming.length) { toast.error('Add at least one ingredient.'); return false; } const accepted = incoming.filter(isFoodLike); if (accepted.length !== incoming.length) toast.error('Only food ingredients can be added.'); const unique = accepted.filter((item) => !items.some((saved) => saved.toLowerCase() === item.toLowerCase())); if (!unique.length) { toast.error('Those ingredients are already in your list or are not food.'); return false; } if (items.length + unique.length > 20) { toast.error('You can add up to 20 ingredients.'); return false; } setItems((current) => [...current, ...unique]); return true; };
+  const run = (surprise = false) => { const selected = surprise ? ['Eggs', 'Mushrooms', 'Spinach', 'Cheese'] : items; if (!selected.length) return toast.error('Add an ingredient first.'); const assessment = assessIngredients(selected); if (!assessment.sufficient) { setLocalInsufficient(assessment); return; } generate(selected); };
+  const toggle = (setter) => (index) => setter((current) => current.includes(index) ? current.filter((item) => item !== index) : [...current, index]);
+
+  if (status === 'loading') return <main className="px-5 py-20"><Loader /></main>;
+  if (status === 'error') return <main className="px-5 py-20"><ErrorCard retry={() => run()} /></main>;
+  if (status === 'insufficient' || localInsufficient) return <main className="px-5 py-20"><InsufficientIngredients detail={insufficient || localInsufficient} onAdd={add} onBack={() => { setLocalInsufficient(null); onClearInsufficient?.(); }} /></main>;
+  if (recipe) { const ingredients = scaleIngredients(recipe.ingredients, recipe.servings, servings); return <main className="mx-auto max-w-6xl px-5 py-8"><button type="button" onClick={onResetRecipe} className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-orange hover:underline"><FiArrowLeft /> Edit ingredients</button><RecipeHero recipe={{ ...recipe, servings }} favorite={favorite} onFavorite={onFavorite} onSave={onSave} /><div className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_.8fr]"><div className="space-y-10"><div className="flex justify-end"><ServingScaler servings={servings} setServings={setServings} /></div><IngredientsChecklist ingredients={ingredients} done={ingredientDone} toggle={toggle(setIngredientDone)} /><StepsTimeline steps={recipe.steps} done={stepDone} toggle={toggle(setStepDone)} /></div><aside className="space-y-8"><NutritionCard nutrition={recipe.nutrition} /><IngredientSwaps swaps={recipe.swaps} /><TipsSection tips={recipe.tips} /></aside></div></main>; }
+
+  return <main className="overflow-hidden"><section className="relative mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-12 lg:grid-cols-[1.04fr_.96fr] lg:items-center lg:pb-24 lg:pt-20"><div className="hero-orb -left-32 top-6" /><div className="relative"><motion.span initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} className="eyebrow"><FiZap /> Powered by Gemini AI</motion.span><motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .08 }} className="mt-6 max-w-2xl font-display text-5xl leading-[.96] sm:text-6xl xl:text-7xl">Turn your fridge<br />into <span className="text-[#779500]">dinner.</span></motion.h1><p className="mt-6 max-w-xl text-lg leading-relaxed opacity-70 sm:text-xl">Tell us what is already in your kitchen and Chef Fox will help you make a cozy meal worth looking forward to.</p><div className="mt-8 flex flex-wrap gap-3"><span className="mascot-note">🦊 <span><small>Your kitchen buddy</small><b>Chef Fox is ready to cook</b></span></span><span className="inline-flex items-center gap-2 rounded-full border border-[#779500]/15 bg-[#eff2d9] px-4 py-2 text-sm font-bold text-[#607600] dark:bg-[#607600]/20 dark:text-[#dcec90]"><FiHeart /> Made from what you have</span></div></div><motion.div initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: .14 }} className="relative mx-auto w-full max-w-xl"><div className="hero-orb right-0 top-0" /><img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1100&q=88" alt="A warm, sunlit home kitchen ready for cooking" className="relative h-[360px] w-full rounded-[2.5rem] object-cover shadow-[0_30px_70px_rgba(81,58,27,.18)] sm:h-[480px]" /><div className="absolute -bottom-6 left-5 rounded-3xl border border-white/70 bg-white/90 px-5 py-4 shadow-soft backdrop-blur dark:border-white/10 dark:bg-[#26221d]/90"><span className="text-2xl">🦊</span><span className="ml-3 inline-flex flex-col align-middle"><small className="uppercase tracking-wider opacity-50">Your kitchen buddy</small><b>Chef Fox is ready to cook</b></span></div><span className="absolute -right-2 top-10 rounded-2xl bg-[#f7b928] p-4 text-2xl shadow-soft" aria-hidden="true">🥕</span></motion.div></section>
+    <section className="relative mx-auto max-w-5xl px-5 pb-14"><div className="glass rounded-[2rem] p-5 sm:p-8"><div className="mb-5 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#eff2d9]">🧺</span><div><h2 className="font-bold">What is in your basket?</h2><p className="text-sm opacity-60">Add ingredients, separated with commas.</p></div></div><IngredientInput onAdd={add} /><div className="mt-5"><IngredientList items={items} onRemove={(item) => setItems((current) => current.filter((saved) => saved !== item))} />{!items.length && <EmptyState />}</div><div className="mt-6 flex flex-col gap-3 sm:flex-row"><button type="button" onClick={() => run()} className="btn-primary flex flex-1 items-center justify-center gap-2 py-4">Create my recipe <FiArrowRight /></button><button type="button" onClick={() => run(true)} className="btn-secondary inline-flex items-center justify-center gap-2"><FiShuffle /> Surprise me</button></div></div><div className="mt-6"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] opacity-45">Popular ingredients</p><div className="flex flex-wrap gap-2">{popular.map((item) => <button type="button" onClick={() => add(item)} key={item} className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5 hover:border-[#779500] hover:text-[#607600] dark:border-white/15 dark:bg-white/5">+ {item}</button>)}</div></div></section>
+    <section className="mx-auto max-w-7xl px-5 pb-20"><div className="text-center"><span className="eyebrow">Made for calmer cooking</span><h2 className="mt-4 font-display text-4xl sm:text-5xl">A little help, right when you need it.</h2></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{features.map(([icon, title, copy]) => <article key={title} className="group rounded-[1.75rem] border border-black/5 bg-white/70 p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-soft dark:border-white/10 dark:bg-white/5"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eff2d9] text-2xl">{icon}</span><h3 className="mt-5 text-lg font-bold">{title}</h3><p className="mt-2 leading-relaxed opacity-60">{copy}</p></article>)}</div></section></main>;
+}

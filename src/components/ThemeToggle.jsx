@@ -1,0 +1,1 @@
+import {FiMoon,FiSun} from 'react-icons/fi'; export default function ThemeToggle({dark,setDark}){return <button aria-label="Toggle dark mode" onClick={()=>setDark(!dark)} className="icon-btn">{dark?<FiSun/>:<FiMoon/>}</button>}

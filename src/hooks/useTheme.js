@@ -1,0 +1,1 @@
+import {useEffect} from 'react'; import {useLocalStorage} from './useLocalStorage'; export function useTheme(){const[dark,setDark]=useLocalStorage('f2r-theme',false);useEffect(()=>{document.documentElement.classList.toggle('dark',dark)},[dark]);return[dark,setDark]}

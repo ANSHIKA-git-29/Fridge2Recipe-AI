@@ -1,0 +1,1 @@
+import {FiCoffee} from 'react-icons/fi'; export default function EmptyState(){return <div className="py-8 text-center opacity-60"><FiCoffee className="mx-auto mb-3 text-3xl text-orange"/><p className="font-medium">Start by adding ingredients.</p></div>}

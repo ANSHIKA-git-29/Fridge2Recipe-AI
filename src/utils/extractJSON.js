@@ -1,0 +1,1 @@
+export function extractJSON(input) { if (typeof input !== 'string') return input; const cleaned=input.replace(/```(?:json)?/gi,'').replace(/```/g,'').trim(); const start=cleaned.indexOf('{'), end=cleaned.lastIndexOf('}'); if(start<0||end<start) throw new Error('No JSON object found'); return JSON.parse(cleaned.slice(start,end+1)); }

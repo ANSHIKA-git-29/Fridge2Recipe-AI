@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&family=Playfair+Display:wght@600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-cream text-ink font-sans antialiased dark:bg-[#171513] dark:text-[#fff9f4]; background-image: radial-gradient(circle at 78% 10%, rgba(255,219,130,.16), transparent 28rem); }
+  button, input, textarea, select { @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[#779500] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#171513]; }
+}
+@layer components {
+  .glass { @apply border border-white/70 bg-white/75 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-white/[.06]; }
+  .btn-primary { @apply rounded-2xl bg-gradient-to-r from-[#6e8700] to-[#8faa00] px-5 py-3 font-bold text-white shadow-lg shadow-[#6e8700]/20 transition hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 disabled:cursor-wait disabled:opacity-70; }
+  .btn-secondary { @apply rounded-2xl border border-[#779500]/25 bg-[#f3f5e4] px-5 py-3 font-bold text-[#607600] transition hover:bg-[#e8edcb] dark:bg-[#607600]/15 dark:text-[#dcec90]; }
+  .icon-btn { @apply grid h-10 w-10 place-items-center rounded-xl transition hover:bg-black/5 dark:hover:bg-white/10; }
+  .font-display { @apply font-brand font-extrabold tracking-[-.045em]; }
+  .eyebrow { @apply inline-flex items-center gap-2 rounded-full border border-[#779500]/15 bg-[#f4f2dc] px-4 py-2 text-sm font-bold text-[#607600] dark:bg-[#607600]/20 dark:text-[#dcec90]; }
+  .mascot-note { @apply inline-flex items-center gap-2 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm shadow-soft dark:border-white/10 dark:bg-[#29241e]/90; }
+  .mascot-note small { @apply block text-[10px] uppercase tracking-wider opacity-50; }
+  .mascot-note b { @apply block; }
+}
+.hero-orb { position:absolute; width:16rem; height:16rem; border-radius:9999px; background:rgba(240,203,72,.22); filter:blur(45px); pointer-events:none; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+@media print { body { background: #fff !important; color: #111 !important; } nav,footer,button,.no-print { display: none !important; } .glass { border: 1px solid #ddd !important; box-shadow: none !important; background: #fff !important; } main { max-width: none !important; padding: 0 !important; } }
